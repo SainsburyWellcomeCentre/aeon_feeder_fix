@@ -1,29 +1,23 @@
-from machine import Pin, Timer, ADC
+# Import standard library modules.
+import uasyncio
+from machine import Pin, ADC
 import utime
 
-sensor = ADC(0)
+# Import SWC library modules.
+import usbcdc
+import harpsync
+from bbdevice import BbDevice
+
+# Instance a CDC, a harpsync interface, and an LED.
+stream = usbcdc.usbcdc(1)
+sync = harpsync.harpsync(0)
+led = Pin(25, Pin.OUT)
+
+# Instance Beam Break peripherals
+adc = ADC(4)#should be 0 - using 3 for testing without circuit
 out = Pin(1, Pin.OUT)
-led = Pin(14, Pin.OUT)
+bbled = Pin(14, Pin.OUT)
 
-#tim = Timer()
-
-#def tick(timer):
-#    global led
-#    led.toggle()
-
-#tim.init(freq=1000, mode=Timer.PERIODIC, callback=tick)
-count = 0
-conversion_factor = 3.3 / (65535)
-
-while True:
-    led.value(1)
-    reading = sensor.read_u16()# * conversion_factor
-    led.value(0)
-    if reading < 30000:
-        out.value(1)
-        count=count+1
-    else:
-        out.value(0)
-#    print(reading)
-    print(count)
-    utime.sleep(0.003)
+# Instance the device object and launch its application.
+theDevice = BbDevice(stream, sync, led, adc, out, bbled)
+uasyncio.run(theDevice.main())
