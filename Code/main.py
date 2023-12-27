@@ -1,34 +1,49 @@
-from machine import Pin, Timer, ADC
 import utime
+from machine import Pin, ADC
 
 sensor = ADC(0)
 out = Pin(1, Pin.OUT)
 led = Pin(14, Pin.OUT)
 
-#tim = Timer()
+READY = 0
+PULSE = 1
+BROKEN = 2
 
-#def tick(timer):
-#    global led
-#    led.toggle()
+THRESHOLD = 30000
+PULSE_INTERVAL = 3
+SETTLE_INTERVAL = 300
+BEAM_BURST_THRESHOLD = 3
 
-#tim.init(freq=1000, mode=Timer.PERIODIC, callback=tick)
-count = 0
-conversion_factor = 3.3 / (65535)
-ready = 0
+state = READY
+pulse_counter = 0
+settle_counter = 0
+beam_burst_counter = 0
 
 while True:
     led.value(1)
-    reading = sensor.read_u16()# * conversion_factor
+    reading = sensor.read_u16()
     led.value(0)
-    if reading < 30000:
-        ready = 3
-        out.value(1)
-        count=count+1
-    elif ready > 1:
-        ready = ready - 1
+    beam_active = reading < THRESHOLD
+    if state == READY:
+        if beam_active:
+            state = PULSE
+            pulse_counter = PULSE_INTERVAL
+            settle_counter = SETTLE_INTERVAL
+            beam_burst_counter = beam_burst_counter + 1
+            out.value(1)
+        else:
+            settle_counter = settle_counter - 1
+            if settle_counter <= 0:
+                beam_burst_counter = 0
+                settle_counter = 0
+    elif state == PULSE:
+        pulse_counter = pulse_counter - 1
+        if pulse_counter <= 0:
+            state = READY if beam_burst_counter < BEAM_BURST_THRESHOLD else BROKEN
+            out.value(0)
     else:
-        out.value(0)
-        ready = 0
-#    print(reading)
-    print(count)
+        settle_counter = SETTLE_INTERVAL if beam_active else settle_counter - 1
+        if settle_counter <= 0:
+            state = READY
+            beam_burst_counter = 0
     utime.sleep(0.003)
