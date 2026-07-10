@@ -1,20 +1,53 @@
-# aeon_feeder_fix
+# aeon_beambreak_filter
 
-The IR beam break processing code runs on top of [MicroPython](https://github.com/micropython/micropython), an implementation of a Python interpreter for microcontrollers.
+![GitHub release](https://img.shields.io/github/v/release/SainsburyWellcomeCentre/aeon_beambreak_filter.svg)
 
-## How to install
+This IR beam break processing code is a workaround to filter the adaptive threshold signal in the case where the beam is blocked by accidental obstruction. The following state machine describes the filtering operation:
 
-### Prerequisites
+```mermaid
+stateDiagram-v2
+    [*] --> Ready
+    Ready --> Pulse: LOW
+    Pulse --> Ready: WAIT 3 samples
+    Pulse --> Broken: 3 consecutive\n pulses in less\n than 1 second
+    Broken --> Ready: 1 second HIGH
+    Broken --> Broken: LOW
+```
 
-* [Visual Studio Code](https://code.visualstudio.com/)
-* [Raspberry Pi Pico SDK](https://www.raspberrypi.com/news/raspberry-pi-pico-windows-installer/)
+<!-- ## 🌐 View Online (eCAD) -->
 
-### Firmware
+## Build your own
 
-Before running the actual Python code, we need to install the MicroPython firmware in the Pico. To do this, boot the Pico into firmware uploading mode by holding BOOTSEL while plugging the USB cable into the computer, then release. A storage drive should now be mounted on the computer, e.g. RPI-RP2.
+Check out the **[latest release](https://github.com/SainsburyWellcomeCentre/aeon_beambreak_filter/releases/latest)** for production Gerbers, BOM, and assembly drawings to build your own beambreak filter.
 
-To install the firmware, drag the file `RPI_PICO-20231005-v1.21.0.uf2` into the storage drive. The drive should be automatically unmounted and the Pico will then boot straight into MicroPython.
+## 💻 Software Requirements
 
-### MicroPython code
+- **MicroPython** — Firmware runtime on the microcontroller, download the latest UF2 file for the Pi Pico from [MicroPython download page](https://micropython.org/download/rp2-pico/).
 
-The IR beam break processing code is implemented in the `main.py` file, [here](https://github.com/SainsburyWellcomeCentre/aeon_feeder_fix/blob/main/Code/main.py). This should be transferred to the root of the pico file system so it can be executed on reset. One way to do this is via the [Thonny IDE](https://thonny.org/): if the firmware has been correctly installed, then when plugging the pico back into the computer, and opening the Thonny IDE, in the bottom-right corner of the IDE you should be able to select devices, and the Pico should show up here; if you click the Pico device listed here, and then in the main menu bar in Thonny click "View -> Files", you should see both the filesystem of the computer, and the filesystem of the Pico, and you should then be able to click and upload files from the computer to the Pico.
+To view or edit the source design files:
+
+- **KiCad** _(electronic design)_ — Download via [KiCad](https://www.kicad.org/download/)
+- **Inventor 2025+** _(mechanical design)_ — Academic licenses via [Autodesk Education](https://www.autodesk.com/education/free-software/inventor)
+
+## 📜 License
+
+**Sainsbury Wellcome Centre hardware is released under** [Creative Commons Attribution-ShareAlike 4.0 International](http://creativecommons.org/licenses/by-sa/4.0/).
+
+You are free to:
+
+- **Share** — copy and redistribute the material in any medium or format
+- **Adapt** — remix, transform, and build upon the material for any purpose
+
+Under the following terms:
+
+- **Attribution** — Give appropriate credit, link to the license, and indicate changes.
+- **ShareAlike** — Distribute your contributions under the same license.
+- **No additional restrictions** — Don't apply legal or technological measures that prevent others from doing anything the license permits.
+
+> For the full legal text, see [LICENSE](LICENSE).
+
+## 📧 Contact
+
+- **Author**: [Sainsbury Wellcome Centre FabLabs](https://www.sainsburywellcome.org/content/fablab)
+- **Email**: [swc.fablabs@ucl.ac.uk](mailto:swc.fablabs@ucl.ac.uk)
+- **Website**: [FabLabs Documentation](https://sainsburywellcomecentre.github.io/fablabs-documentation/aeon_beambreak_filter)
